@@ -1,0 +1,203 @@
+// Prisma schema — MongoDB
+// After changing this file run `npx prisma db push` to sync indexes.
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mongodb"
+  url      = env("DATABASE_URL")
+}
+
+// ── Auth (NextAuth) ────────────────────────────────────────────
+
+model User {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  name           String?
+  email          String?   @unique
+  emailVerified  DateTime?
+  image          String?
+  password       String?
+  isDemo         Boolean   @default(false)
+  onboarded      Boolean   @default(false)
+  targetRole     String?
+  targetLocation String?
+  dailyMin       Int       @default(5)
+  dailyMax       Int       @default(10)
+  portfolioUrl   String?
+  gmailSyncedAt  DateTime?
+  // Used by the browser extension to fill application forms
+  phone          String?
+  linkedinUrl    String?
+  githubUrl      String?
+
+  accounts     Account[]
+  sessions     Session[]
+  applications Application[]
+  documents    UserDocument[]
+  apiTokens    ApiToken[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                String  @id @default(auto()) @map("_id") @db.ObjectId
+  userId            String  @db.ObjectId
+  type              String
+  provider          String
+  providerAccountId String
+  refresh_token     String?
+  access_token      String?
+  expires_at        Int?
+  token_type        String?
+  scope             String?
+  id_token          String?
+  session_state     String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([provider, providerAccountId])
+}
+
+model Session {
+  id           String   @id @default(auto()) @map("_id") @db.ObjectId
+  sessionToken String   @unique
+  userId       String   @db.ObjectId
+  expires      DateTime
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model VerificationToken {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  identifier String
+  token      String   @unique
+  expires    DateTime
+
+  @@unique([identifier, token])
+}
+
+// ── Application tracking ───────────────────────────────────────
+
+enum ApplicationStatus {
+  SAVED
+  APPLIED
+  SCREENING
+  INTERVIEW
+  OFFER
+  HIRED
+  REJECTED
+}
+
+enum JobSource {
+  LINKEDIN
+  COMPANY_SITE
+  REFERRAL
+  RECRUITER
+  INDEED
+  GLASSDOOR
+  ADZUNA
+  THE_MUSE
+  TWITTER
+  WHATSAPP
+  TELEGRAM
+  MANUAL
+  OTHER
+}
+
+model Application {
+  id     String            @id @default(auto()) @map("_id") @db.ObjectId
+  userId String            @db.ObjectId
+  status ApplicationStatus @default(SAVED)
+  source JobSource         @default(MANUAL)
+
+  jobTitle    String
+  company     String
+  location    String?
+  salary      String?
+  jobUrl      String?
+  description String?
+  jobType     String?
+  remote      Boolean @default(false)
+
+  notes           String?
+  resumeUsed      String?
+  coverLetterUsed String?
+
+  appliedAt   DateTime?
+  respondedAt DateTime?
+  interviewAt   DateTime?
+  interviewType String? // e.g. "Portfolio review", "Hiring manager"
+  deadline      DateTime? // application closing date
+
+  user   User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  emails Email[]
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+model Email {
+  id             String    @id @default(auto()) @map("_id") @db.ObjectId
+  applicationId  String    @db.ObjectId
+  gmailMessageId String?
+  threadId       String?
+  subject        String?
+  snippet        String?
+  from           String?
+  to             String?
+  date           DateTime?
+  isResponse     Boolean   @default(false)
+  // "interview" | "rejection" | "offer" | "reply" | "confirmation"
+  category       String?
+  labels         String[]
+
+  application Application @relation(fields: [applicationId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+
+  @@index([applicationId])
+  @@index([gmailMessageId])
+}
+
+// ── CV & portfolio storage for tailoring ───────────────────────
+
+model UserDocument {
+  id         String   @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String   @db.ObjectId
+  type       String // "cv" | "portfolio" | "cover_letter_template"
+  fileName   String
+  fileUrl    String   @default("")
+  parsedText String?
+  skills     String[]
+  experience String[]
+  // Original upload, so the extension can attach it to application forms
+  fileData   Bytes?
+  mimeType   String?
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@index([userId])
+}
+
+// ── Personal access tokens (browser extension) ─────────────────
+
+model ApiToken {
+  id         String    @id @default(auto()) @map("_id") @db.ObjectId
+  userId     String    @db.ObjectId
+  name       String
+  tokenHash  String    @unique // sha256 of the token; the token itself is shown once
+  prefix     String // first characters, to recognise it in the list
+  lastUsedAt DateTime?
+  createdAt  DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}

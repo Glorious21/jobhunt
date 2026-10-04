@@ -1,0 +1,70 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8" />
+    <title>jobhunt</title>
+    <link rel="stylesheet" href="popup.css" />
+  </head>
+  <body>
+    <header class="top">
+      <span class="logo" aria-label="jobhunt"><span>j</span><span class="lens"><i></i><b></b></span><span>bhunt</span></span>
+      <button id="disconnect" class="link" hidden>Disconnect</button>
+    </header>
+
+    <!-- Connect -->
+    <section id="setup" hidden>
+      <h1>Connect to jobhunt</h1>
+      <p class="muted">In jobhunt, open <b>Settings → Browser extension</b> and create a token.</p>
+      <label class="field">Server<input id="server" class="input" placeholder="http://localhost:3000" /></label>
+      <label class="field">Token<input id="token" class="input" placeholder="jh_…" autocomplete="off" /></label>
+      <p id="setup-error" class="error" hidden></p>
+      <button id="connect" class="btn primary block">Connect</button>
+    </section>
+
+    <!-- Main -->
+    <section id="main" hidden>
+      <p id="loading" class="muted">Reading this page…</p>
+
+      <div id="pending" class="banner" hidden>
+        <span>Did your application go through?</span>
+        <button id="pending-yes" class="btn lime xs">Mark applied</button>
+      </div>
+
+      <div id="job" class="card" hidden>
+        <div class="row between">
+          <span class="label">This job</span>
+          <span id="chip" class="chip" hidden></span>
+        </div>
+        <label class="field">Role<input id="role" class="input" /></label>
+        <label class="field">Company<input id="company" class="input" /></label>
+        <label class="field" id="link-wrap" hidden>
+          Save to
+          <select id="link" class="input"></select>
+        </label>
+        <div class="row">
+          <button id="track" class="btn outline grow">Track job</button>
+          <button id="fill" class="btn primary grow">Fill this form</button>
+        </div>
+        <p id="result" class="muted small" hidden></p>
+        <button id="applied" class="btn outline block" hidden>I’ve applied</button>
+      </div>
+
+      <div id="letter-card" class="card" hidden>
+        <div class="row between">
+          <span class="label">Cover letter</span>
+          <button id="write" class="btn outline xs">Write for this job</button>
+        </div>
+        <textarea id="letter" class="input area" placeholder="Drafted from your CV. Review it before inserting." hidden></textarea>
+        <div id="letter-actions" class="row" hidden>
+          <button id="insert" class="btn primary grow">Insert into form</button>
+          <button id="copy" class="btn outline">Copy</button>
+        </div>
+      </div>
+
+      <p id="error" class="error" hidden></p>
+      <a id="dashboard" class="link small" target="_blank" rel="noreferrer">Open jobhunt</a>
+    </section>
+
+    <script type="module" src="popup.js"></script>
+  </body>
+</html>

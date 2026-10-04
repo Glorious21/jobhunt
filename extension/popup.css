@@ -1,0 +1,220 @@
+:root {
+  --forest: oklch(0.33 0.07 160);
+  --forest-hover: oklch(0.27 0.06 160);
+  --lime: oklch(0.84 0.18 128);
+  --lime-ink: oklch(0.25 0.06 160);
+  --lime-tint: oklch(0.95 0.05 128);
+  --ink: #16201a;
+  --muted: #5b6760;
+  --faint: #8a948d;
+  --bg: #f6f7f4;
+  --line: #e3e7e1;
+  --input-border: #d6dbd3;
+  --danger: oklch(0.48 0.17 25);
+}
+* {
+  box-sizing: border-box;
+}
+body {
+  margin: 0;
+  width: 360px;
+  padding: 14px 16px 16px;
+  background: var(--bg);
+  color: var(--ink);
+  font: 14px/1.4 'Geist', system-ui, -apple-system, 'Segoe UI', sans-serif;
+}
+[hidden] {
+  display: none !important;
+}
+h1 {
+  font: 700 20px/1.2 'Bricolage Grotesque', system-ui, sans-serif;
+  letter-spacing: -0.02em;
+  margin: 10px 0 4px;
+}
+p {
+  margin: 0;
+}
+section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.top {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+}
+/* Logo 3f: the "o" is a magnifier with a lime handle. */
+.logo {
+  display: flex;
+  align-items: center;
+  font: 800 22px/1 'Bricolage Grotesque', system-ui, sans-serif;
+  letter-spacing: -0.05em;
+  color: var(--forest);
+}
+.lens {
+  position: relative;
+  width: 0.56em;
+  height: 0.56em;
+  margin: 0.2em 0.04em 0 0.03em;
+}
+.lens i {
+  position: absolute;
+  inset: 0;
+  border-radius: 50%;
+  border: 0.1em solid var(--forest);
+}
+.lens b {
+  position: absolute;
+  left: 84%;
+  top: 84%;
+  width: 0.09em;
+  height: 0.16em;
+  margin-left: -0.045em;
+  border-radius: 0.05em;
+  background: var(--lime);
+  transform: rotate(-45deg);
+  transform-origin: 50% 0;
+}
+.card {
+  background: #fff;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  padding: 14px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+.label {
+  font-weight: 600;
+  font-size: 13px;
+}
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  font-weight: 500;
+  font-size: 13px;
+}
+.input {
+  height: 36px;
+  padding: 0 10px;
+  border-radius: 9px;
+  border: 1px solid var(--input-border);
+  background: #fff;
+  font: inherit;
+  font-weight: 400;
+  color: inherit;
+  outline: none;
+  width: 100%;
+}
+.input:focus {
+  border-color: var(--forest);
+}
+.area {
+  height: 170px;
+  padding: 10px;
+  resize: vertical;
+  line-height: 1.5;
+  font-size: 13px;
+}
+.row {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+.between {
+  justify-content: space-between;
+}
+.grow {
+  flex: 1;
+}
+.btn {
+  height: 36px;
+  padding: 0 14px;
+  border-radius: 9px;
+  border: none;
+  font: inherit;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background-color 0.15s, transform 0.12s;
+}
+.btn:active:not(:disabled) {
+  transform: scale(0.97);
+}
+.btn:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+.primary {
+  background: var(--forest);
+  color: #fff;
+}
+.primary:hover:not(:disabled) {
+  background: var(--forest-hover);
+}
+.outline {
+  background: #fff;
+  border: 1px solid var(--input-border);
+  font-weight: 500;
+}
+.outline:hover:not(:disabled) {
+  background: var(--bg);
+}
+.lime {
+  background: var(--lime);
+  color: var(--lime-ink);
+  font-weight: 700;
+}
+.xs {
+  height: 28px;
+  padding: 0 10px;
+  font-size: 12px;
+  border-radius: 8px;
+}
+.block {
+  width: 100%;
+}
+.link {
+  background: none;
+  border: none;
+  padding: 0;
+  color: var(--forest);
+  font: inherit;
+  font-weight: 500;
+  cursor: pointer;
+  text-decoration: none;
+}
+.muted {
+  color: var(--muted);
+}
+.small {
+  font-size: 12px;
+  line-height: 1.45;
+}
+.error {
+  color: var(--danger);
+  font-size: 13px;
+  line-height: 1.45;
+}
+.chip {
+  padding: 3px 9px;
+  border-radius: 999px;
+  font-size: 11px;
+  font-weight: 600;
+  background: oklch(0.95 0.045 var(--h, 250));
+  color: oklch(0.45 0.12 var(--h, 250));
+}
+.banner {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 12px;
+  background: var(--forest);
+  color: #fff;
+  font-weight: 500;
+  font-size: 13px;
+}

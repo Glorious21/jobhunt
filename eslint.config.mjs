@@ -6,6 +6,11 @@ const eslintConfig = defineConfig([
   ...nextVitals,
   ...nextTs,
   // Override default ignores of eslint-config-next.
+  // Browser extension: plain ES modules running in the extension/page, with the chrome.* API.
+  {
+    files: ["extension/**/*.js"],
+    languageOptions: { globals: { chrome: "readonly" } },
+  },
   globalIgnores([
     // Default ignores of eslint-config-next:
     ".next/**",
