@@ -19,6 +19,7 @@ export interface ParsedJob {
 }
 
 const CITIES = [
+  'Ikeja', 'Lekki', 'Victoria Island', 'Ikoyi', 'Yaba', 'Surulere', 'Ajah', 'Maryland', 'Gbagada', 'Apapa',
   'Lagos', 'Abuja', 'Port Harcourt', 'Ibadan', 'Kano', 'Enugu', 'Benin City', 'Kaduna', 'Abeokuta', 'Owerri', 'Uyo', 'Calabar', 'Jos', 'Ilorin', 'Warri', 'Akure',
   'Accra', 'Nairobi', 'Kigali', 'Cape Town', 'Johannesburg', 'Cairo',
   'London', 'Manchester', 'Dublin', 'Berlin', 'Amsterdam', 'Paris', 'Lisbon', 'Madrid', 'Barcelona', 'Rotterdam',
@@ -128,7 +129,13 @@ export function parseJobPost(raw: string, now = new Date()): ParsedJob {
 
   const fromHeadline = companyAndRole(lines[0] ?? '')
   const company = labelled(lines, ['company', 'organisation', 'organization', 'employer', 'company name']) ?? fromHeadline.company
-  const jobTitle = labelled(lines, ['job title', 'position', 'role', 'title', 'job role', 'vacancy']) ?? fromHeadline.role ?? (lines[0] && lines[0].length < 80 ? titleCase(lines[0]) : null)
+  // "…needs a Customer Success Associate", "…is looking for a Product Designer"
+  const roleInProse = text.match(/\b(?:needs?|is looking for|are looking for|seeks?|seeking|is hiring|are hiring|hiring)\s+(?:an?\s+|the\s+)?((?:[A-Z][\w&/+-]*\s*){1,6})/)?.[1]?.trim()
+  const jobTitle =
+    labelled(lines, ['job title', 'position', 'role', 'title', 'job role', 'vacancy']) ??
+    fromHeadline.role ??
+    (roleInProse && roleInProse.split(/\s+/).length >= 2 ? roleInProse : null) ??
+    (lines[0] && lines[0].length < 80 ? titleCase(lines[0]) : null)
 
   let location = labelled(lines, ['location', 'job location', 'locations', 'based in', 'work location'])
   const remote = /\b(remote|work from home|wfh|anywhere)\b/i.test(text)

@@ -7,6 +7,34 @@ import type { Source } from '@/lib/constants'
 
 const ADZUNA_COUNTRIES = ['gb', 'us', 'ca', 'au', 'de', 'fr', 'in', 'nl', 'nz', 'pl', 'sg', 'za', 'br', 'it', 'es', 'at', 'be', 'ch', 'mx']
 
+// Location text → ISO country code. JSearch searches one country's index (default US), so
+// "Lagos" must be sent as country=ng; Adzuna only covers the countries listed above.
+const COUNTRY_HINTS: [RegExp, string][] = [
+  [/nigeria|lagos|abuja|ikeja|lekki|port harcourt|ibadan|kano|enugu|benin city|kaduna|abeokuta|owerri|uyo|calabar|\bjos\b|ilorin|warri|akure/i, 'ng'],
+  [/ghana|accra|kumasi/i, 'gh'],
+  [/kenya|nairobi|mombasa/i, 'ke'],
+  [/south africa|johannesburg|cape town|durban|pretoria/i, 'za'],
+  [/rwanda|kigali/i, 'rw'],
+  [/egypt|cairo/i, 'eg'],
+  [/united kingdom|\buk\b|england|london|manchester|birmingham|edinburgh|glasgow|leeds|bristol/i, 'gb'],
+  [/ireland|dublin/i, 'ie'],
+  [/germany|berlin|munich|hamburg/i, 'de'],
+  [/netherlands|amsterdam|rotterdam/i, 'nl'],
+  [/france|paris/i, 'fr'],
+  [/spain|madrid|barcelona/i, 'es'],
+  [/portugal|lisbon/i, 'pt'],
+  [/canada|toronto|vancouver|montreal/i, 'ca'],
+  [/india|bangalore|bengaluru|mumbai|delhi|hyderabad|pune/i, 'in'],
+  [/australia|sydney|melbourne/i, 'au'],
+  [/dubai|abu dhabi|united arab emirates|\buae\b/i, 'ae'],
+  [/united states|\busa?\b|new york|san francisco|seattle|austin|chicago|boston|los angeles/i, 'us'],
+]
+
+function countryFor(location: string, explicit: string | null) {
+  if (explicit && /^[a-z]{2}$/i.test(explicit)) return explicit.toLowerCase()
+  return COUNTRY_HINTS.find(([re]) => re.test(location))?.[1] ?? null
+}
+
 export async function GET(request: Request) {
   const userId = await getUserId()
   if (!userId) return error('Unauthorized', 401)
@@ -18,7 +46,7 @@ export async function GET(request: Request) {
   const jobType = searchParams.get('jobType') || ''
   const datePosted = searchParams.get('datePosted') || 'all'
   const page = Math.max(1, Math.min(20, parseInt(searchParams.get('page') || '1') || 1))
-  const country = (searchParams.get('country') || 'gb').toLowerCase()
+  const country = countryFor(location, searchParams.get('country'))
 
   if (!query) return error('Enter a job title or keyword')
 
@@ -29,12 +57,15 @@ export async function GET(request: Request) {
     return json({ jobs: sampleJobs(query, remote, jobType, datePosted), page, hasMore: false, isSample: true, providers: [] })
   }
 
+  // Adzuna only when it covers the country (it has no Nigeria index, for example).
+  const adzunaCountry = !location ? 'gb' : country && ADZUNA_COUNTRIES.includes(country) ? country : null
   const results = await Promise.allSettled([
-    hasJSearch ? fetchJSearch(query, location, remote, page, jobType, datePosted) : Promise.resolve([]),
-    hasAdzuna && !remote ? fetchAdzuna(query, location, page, ADZUNA_COUNTRIES.includes(country) ? country : 'gb') : Promise.resolve([]),
+    hasJSearch ? fetchJSearch(query, location, remote, page, jobType, datePosted, country) : Promise.resolve([]),
+    hasAdzuna && !remote && adzunaCountry ? fetchAdzuna(query, location, page, adzunaCountry) : Promise.resolve([]),
   ])
 
   const failures = results.filter((r) => r.status === 'rejected').length
+  for (const r of results) if (r.status === 'rejected') console.warn('Job provider failed:', r.reason instanceof Error ? r.reason.message : r.reason)
   let jobs = results.flatMap((r) => (r.status === 'fulfilled' ? r.value : []))
 
   if (jobType) {
@@ -87,16 +118,19 @@ async function fetchJSearch(
   remote: boolean,
   page: number,
   jobType: string,
-  datePosted: string
+  datePosted: string,
+  country: string | null
 ): Promise<JobListing[]> {
   const q = location ? `${query} in ${location}` : query
   const params = new URLSearchParams({ query: q, page: String(page), num_pages: '1' })
+  if (country) params.set('country', country)
   if (remote) params.set('remote_jobs_only', 'true')
   const employment = JSEARCH_TYPES[jobType.toLowerCase()]
   if (employment) params.set('employment_types', employment)
   if (['today', '3days', 'week', 'month'].includes(datePosted)) params.set('date_posted', datePosted)
 
-  const res = await fetch(`https://jsearch.p.rapidapi.com/search?${params}`, {
+  // JSearch retired /search in favour of /search-v2 (results now under data.jobs).
+  const res = await fetch(`https://jsearch.p.rapidapi.com/search-v2?${params}`, {
     headers: {
       'X-RapidAPI-Key': process.env.RAPIDAPI_KEY!,
       'X-RapidAPI-Host': 'jsearch.p.rapidapi.com',
@@ -104,11 +138,12 @@ async function fetchJSearch(
     next: { revalidate: 600 },
     signal: AbortSignal.timeout(15_000),
   })
-  if (!res.ok) throw new Error(`JSearch ${res.status}`)
+  if (!res.ok) throw new Error(`JSearch ${res.status}: ${(await res.text()).slice(0, 200)}`)
   const data = await res.json()
-  if (!Array.isArray(data.data)) return []
+  const list: unknown = Array.isArray(data.data) ? data.data : data.data?.jobs
+  if (!Array.isArray(list)) return []
 
-  return data.data.map((job: Record<string, unknown>): JobListing => {
+  return list.map((job: Record<string, unknown>): JobListing => {
     const place = [job.job_city, job.job_state, job.job_country].filter(Boolean).join(', ')
     const min = Number(job.job_min_salary)
     const max = Number(job.job_max_salary)
@@ -118,7 +153,7 @@ async function fetchJSearch(
       title: String(job.job_title || 'Untitled role'),
       company: String(job.employer_name || 'Unknown company'),
       location: place || (job.job_is_remote ? 'Remote' : 'Location not listed'),
-      salary: min && max ? `${formatMoney(min)}–${formatMoney(max)}${period}` : undefined,
+      salary: min && max ? `${formatMoney(min)}–${formatMoney(max)}${period}` : typeof job.job_salary_string === 'string' && job.job_salary_string ? job.job_salary_string : undefined,
       description: typeof job.job_description === 'string' ? job.job_description.slice(0, 6000) : undefined,
       url: String(job.job_apply_link || job.job_google_link || ''),
       source: guessSource(job.job_publisher),
@@ -144,7 +179,7 @@ async function fetchAdzuna(query: string, location: string, page: number, countr
     next: { revalidate: 600 },
     signal: AbortSignal.timeout(15_000),
   })
-  if (!res.ok) throw new Error(`Adzuna ${res.status}`)
+  if (!res.ok) throw new Error(`Adzuna ${res.status}: ${(await res.text()).slice(0, 200)}`)
   const data = await res.json()
   if (!Array.isArray(data.results)) return []
 
