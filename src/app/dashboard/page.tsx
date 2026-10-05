@@ -7,7 +7,7 @@ import StatusChip, { StageDot } from '@/components/StatusBadge'
 import { LoadError, PageSkeleton } from '@/components/PageState'
 import { ACTIVE_STATUSES, STATUS_LABEL, STATUSES } from '@/lib/constants'
 import { ago, daysBetween, partOfDay } from '@/lib/dates'
-import { countByDay, gotReply, lastNDays, needsFollowUp, streaks, upcomingInterviews, withinDays } from '@/lib/stats'
+import { closesLabel, closingSoon, countByDay, gotReply, lastNDays, needsFollowUp, streaks, upcomingInterviews, withinDays } from '@/lib/stats'
 
 const BAR_H = 170
 
@@ -28,6 +28,7 @@ export default function OverviewPage() {
       interviews: upcomingInterviews(applications).slice(0, 3),
       recent: [...applications].sort((a, b) => b.updatedAt.localeCompare(a.updatedAt)).slice(0, 5),
       followUp: needsFollowUp(applications).slice(0, 6),
+      closing: closingSoon(applications).slice(0, 5),
     }
   }, [applications, profile?.dailyMin])
 
@@ -201,6 +202,37 @@ export default function OverviewPage() {
           ))}
         </div>
 
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 14, minWidth: 0 }}>
+        {data.closing.length > 0 && (
+          <div className="card" style={{ gap: 6 }}>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 6 }}>
+              <span className="card-title">Closing soon</span>
+              <span className="muted" style={{ fontSize: 12 }}>
+                Saved jobs with a deadline in the next two weeks
+              </span>
+            </div>
+            {data.closing.map(({ app: a, daysLeft }) => (
+              <button
+                key={a.id}
+                className="row-hover"
+                onClick={() => openEditor({ app: a })}
+                style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: 10, border: 'none', background: 'transparent', textAlign: 'left' }}
+              >
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 2, minWidth: 0 }}>
+                  <span className="truncate" style={{ fontWeight: 600 }}>
+                    {a.company}
+                  </span>
+                  <span className="muted truncate" style={{ fontSize: 13 }}>
+                    {a.jobTitle}
+                  </span>
+                </div>
+                <span className="mono" style={{ fontSize: 12, flex: 'none', color: daysLeft <= 2 ? 'var(--danger-text)' : 'var(--warn-text)' }}>
+                  {closesLabel(daysLeft)}
+                </span>
+              </button>
+            ))}
+          </div>
+        )}
         <div className="card" style={{ gap: 6 }}>
           <div style={{ display: 'flex', flexDirection: 'column', gap: 2, marginBottom: 6 }}>
             <span className="card-title">Follow up</span>
@@ -229,6 +261,7 @@ export default function OverviewPage() {
               </span>
             </button>
           ))}
+        </div>
         </div>
       </div>
     </div>

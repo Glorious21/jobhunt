@@ -19,6 +19,7 @@ interface Seed {
   salary: string
   notes?: string
   interview?: { inDays: number; hour: number; minute: number; type: string }
+  deadlineInDays?: number
 }
 
 // Sample data from the design handoff.
@@ -29,7 +30,7 @@ const SEEDS: Seed[] = [
   { key: 'a4', company: 'Brightpath Health', role: 'UX Researcher', status: 'APPLIED', channel: 'INDEED', days: 11, mins: 1500, location: 'Remote', salary: '€60–70k' },
   { key: 'a5', company: 'Kettle', role: 'Product Designer', status: 'OFFER', channel: 'RECRUITER', days: 20, mins: 60, location: 'Amsterdam', salary: '€78k' },
   { key: 'a6', company: 'Atlas Freight', role: 'UI Designer', status: 'REJECTED', channel: 'LINKEDIN', days: 15, mins: 2900, location: 'Rotterdam', salary: '€55–65k' },
-  { key: 'a7', company: 'Morrow Studio', role: 'Visual Designer', status: 'SAVED', channel: 'COMPANY_SITE', days: 0, mins: 4300, location: 'Remote', salary: '' },
+  { key: 'a7', company: 'Morrow Studio', role: 'Visual Designer', status: 'SAVED', channel: 'COMPANY_SITE', days: 0, mins: 4300, location: 'Remote', salary: '', deadlineInDays: 2 },
   { key: 'a8', company: 'Quarry', role: 'Product Designer II', status: 'INTERVIEW', channel: 'REFERRAL', days: 8, mins: 200, location: 'Remote', salary: '€72–84k', interview: { inDays: 5, hour: 10, minute: 30, type: 'Hiring manager' } },
   { key: 'a9', company: 'Pinewood Bank', role: 'UX Designer', status: 'APPLIED', channel: 'COMPANY_SITE', days: 3, mins: 800, location: 'Dublin', salary: '€65–75k' },
   { key: 'a10', company: 'Tandem Works', role: 'Interaction Designer', status: 'APPLIED', channel: 'LINKEDIN', days: 1, mins: 30, location: 'Remote', salary: '€60–72k' },
@@ -127,6 +128,7 @@ export async function createDemoUser() {
       respondedAt: replied && s.days ? at(Math.max(0, s.days - 3), 15) : null,
       interviewAt: s.interview ? at(-s.interview.inDays, s.interview.hour, s.interview.minute) : null,
       interviewType: s.interview?.type ?? null,
+      deadline: s.deadlineInDays !== undefined ? at(-s.deadlineInDays, 12) : null,
       createdAt: new Date(now - Math.max(s.days * DAY, s.mins * MIN)),
       updatedAt: new Date(now - s.mins * MIN),
     }

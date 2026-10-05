@@ -138,3 +138,18 @@ export function withinDays(apps: Application[], days: number) {
 export function gotReply(a: Application) {
   return Boolean(a.respondedAt) || REPLY_STATUSES.includes(a.status)
 }
+
+/** Saved (not yet sent) jobs whose deadline is today or within `days`, soonest first. */
+export function closingSoon(apps: Application[], days = 14) {
+  const today = startOfDay().getTime()
+  const limit = today + (days + 1) * DAY_MS
+  return apps
+    .filter((a) => a.status === 'SAVED' && a.deadline)
+    .map((a) => ({ app: a, daysLeft: Math.round((startOfDay(new Date(a.deadline!)).getTime() - today) / DAY_MS) }))
+    .filter((x) => x.daysLeft >= 0 && startOfDay(new Date(x.app.deadline!)).getTime() < limit)
+    .sort((a, b) => a.daysLeft - b.daysLeft)
+}
+
+export function closesLabel(daysLeft: number) {
+  return daysLeft === 0 ? 'Closes today' : daysLeft === 1 ? 'Closes tomorrow' : `Closes in ${daysLeft} days`
+}

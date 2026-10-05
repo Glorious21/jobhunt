@@ -24,6 +24,9 @@ export async function POST(request: Request) {
   const body = await readJson(request)
   const name = optString(body?.name, 60) ?? 'Browser extension'
 
+  const user = await prisma.user.findUnique({ where: { id: userId }, select: { isDemo: true } })
+  if (user?.isDemo) return error('Demo workspaces can’t use the browser extension. Create your own account first.', 403)
+
   if ((await prisma.apiToken.count({ where: { userId } })) >= MAX_TOKENS) {
     return error(`You can have up to ${MAX_TOKENS} tokens. Revoke one first.`, 409)
   }

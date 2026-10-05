@@ -6,7 +6,7 @@ import { useAppData } from '@/components/AppData'
 import { StageDot, StatusSelect, hue } from '@/components/StatusBadge'
 import { LoadError, PageSkeleton } from '@/components/PageState'
 import { isStatus, SOURCE_LABEL, STATUS_HUE, STATUS_LABEL, STATUSES, type Status } from '@/lib/constants'
-import { ago, shortDate } from '@/lib/dates'
+import { ago, daysBetween, shortDate } from '@/lib/dates'
 import type { Application } from '@/lib/types'
 
 type SortKey = 'company' | 'role' | 'status' | 'channel' | 'applied' | 'updated'
@@ -128,9 +128,13 @@ function Applications() {
                 <span className="truncate ink-2">{a.jobTitle}</span>
                 <StatusSelect value={a.status} onChange={(s) => setStatus(a, s)} label={`Status for ${a.company}`} />
                 <span className="muted truncate">{SOURCE_LABEL[a.source]}</span>
-                <span className="mono muted" style={{ fontSize: 12 }}>
-                  {shortDate(a.appliedAt)}
-                </span>
+                {a.status === 'SAVED' && a.deadline && !a.appliedAt ? (
+                  <DeadlineTag deadline={a.deadline} />
+                ) : (
+                  <span className="mono muted" style={{ fontSize: 12 }}>
+                    {shortDate(a.appliedAt)}
+                  </span>
+                )}
                 <span className="faint" style={{ fontSize: 12 }}>
                   {ago(a.updatedAt)}
                 </span>
@@ -245,7 +249,7 @@ function Board({ apps, onOpen, onMove }: { apps: Application[]; onOpen: (a: Appl
                 </span>
                 <span className="faint" style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, marginTop: 4 }}>
                   <span>{SOURCE_LABEL[a.source]}</span>
-                  <span>{ago(a.updatedAt)}</span>
+                  {a.status === 'SAVED' && a.deadline ? <DeadlineTag deadline={a.deadline} /> : <span>{ago(a.updatedAt)}</span>}
                 </span>
               </div>
             ))}
@@ -253,5 +257,17 @@ function Board({ apps, onOpen, onMove }: { apps: Application[]; onOpen: (a: Appl
         )
       })}
     </div>
+  )
+}
+
+/** "Closes 9 Oct" (warn), "Closes today" (danger) or "Closed 3 Oct" (faint) for Saved jobs. */
+function DeadlineTag({ deadline }: { deadline: string }) {
+  const left = -daysBetween(deadline)
+  const color = left < 0 ? 'var(--faint)' : left <= 2 ? 'var(--danger-text)' : 'var(--warn-text)'
+  const text = left < 0 ? `Closed ${shortDate(deadline)}` : left === 0 ? 'Closes today' : `Closes ${shortDate(deadline)}`
+  return (
+    <span className="mono" style={{ fontSize: 11, color, whiteSpace: 'nowrap' }} title="Application deadline">
+      {text}
+    </span>
   )
 }

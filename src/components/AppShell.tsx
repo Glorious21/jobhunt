@@ -61,6 +61,15 @@ export default function AppShell({ children }: { children: React.ReactNode }) {
     return () => window.removeEventListener('keydown', onKey)
   }, [openEditor])
 
+  // Home-screen shortcut "Add application" opens /dashboard?add=1.
+  useEffect(() => {
+    const url = new URL(window.location.href)
+    if (url.searchParams.get('add') !== '1') return
+    url.searchParams.delete('add')
+    window.history.replaceState(null, '', url.pathname + url.search)
+    openEditor({})
+  }, [openEditor])
+
   // Paste a job post anywhere in the dashboard (outside a text field) to add it.
   useEffect(() => {
     const onPaste = (e: ClipboardEvent) => {

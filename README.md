@@ -5,6 +5,8 @@ Run your job search like a pipeline: search several job boards at once, track ev
 ## Features
 
 - **Paste a job post**: paste a job from WhatsApp, Telegram, LinkedIn or email (into *Add application*, or anywhere on the dashboard with Ctrl+V) and jobhunt fills in company, role, location, type, deadline, apply link or email, and channel. **Save & apply** opens the application page; when you come back it asks *Did you apply?* and one click counts it toward your streak.
+- **Share to jobhunt (Android)**: install jobhunt from Chrome (*Add to Home screen / Install app*), then share any job post from WhatsApp or Telegram to jobhunt and it opens as a filled-in application. Requires the app to be served over HTTPS.
+- **Deadline reminders**: *Closing soon* on Overview and *Closes {date}* on saved jobs.
 - **Browser extension** (`extension/`): on any job page or application form it reads the job, tracks it, fills the form with your details and attaches your CV (including forms embedded in iframes, like Greenhouse), and drafts a cover letter for you to review. You click Submit; it then asks to mark the job applied. It never submits for you.
 - **Find jobs** (`/dashboard/jobs`): one search across LinkedIn, Indeed, Glassdoor and others via [JSearch](https://rapidapi.com/letscrape-6bRBa3QguO5/api/jsearch) and [Adzuna](https://developer.adzuna.com/). Save a role or log it as applied in one click.
 - **Applications** (`/dashboard/applications`): table or drag-and-drop board across Saved → Applied → Screening → Interview → Offer → Hired / Rejected, with undo on every stage change. Applied, replied and interview dates fill in automatically.
