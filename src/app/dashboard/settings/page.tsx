@@ -33,6 +33,9 @@ function Settings({ profile }: { profile: Profile }) {
   const [disconnecting, setDisconnecting] = useState(false)
 
   const google = profile.providers.includes('google')
+  // Linked for sign-in, but the Gmail checkbox wasn't ticked on Google's consent screen.
+  const gmailMissing = google && gmail?.connected === false
+  const grantGmail = () => signIn('google', { callbackUrl: '/dashboard/settings' })
   const field = (k: keyof typeof form) => (e: React.ChangeEvent<HTMLInputElement>) => setForm((f) => ({ ...f, [k]: e.target.value }))
 
   const save = async () => {
@@ -128,11 +131,26 @@ function Settings({ profile }: { profile: Profile }) {
         </span>
         <AccountRow
           title="Google / Gmail"
-          detail={google ? `Connected as ${profile.email}` : gmail?.available ? 'Not connected' : 'Not connected · needs Google keys in .env'}
+          detail={
+            gmailMissing
+              ? 'Signed in with Google, but Gmail access wasn’t granted. Allow it and tick the Gmail box.'
+              : google
+                ? `Connected as ${profile.email}`
+                : gmail?.available
+                  ? 'Not connected'
+                  : 'Not connected · needs Google keys in .env'
+          }
           action={
-            <button className="btn btn-outline btn-sm" onClick={toggleGmail} disabled={disconnecting}>
-              {google ? (disconnecting ? 'Disconnecting…' : 'Disconnect') : 'Connect'}
-            </button>
+            <div style={{ display: 'flex', gap: 8, flex: 'none' }}>
+              {gmailMissing && (
+                <button className="btn btn-primary btn-sm" onClick={grantGmail}>
+                  Allow Gmail access
+                </button>
+              )}
+              <button className="btn btn-outline btn-sm" onClick={toggleGmail} disabled={disconnecting}>
+                {google ? (disconnecting ? 'Disconnecting…' : 'Disconnect') : 'Connect'}
+              </button>
+            </div>
           }
         />
         <AccountRow
@@ -183,7 +201,7 @@ function AccountRow({ title, detail, action }: { title: string; detail: string; 
     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, padding: '12px 0', borderBottom: '1px solid var(--line-3)' }}>
       <div style={{ display: 'flex', flexDirection: 'column', minWidth: 0 }}>
         <span style={{ fontWeight: 500 }}>{title}</span>
-        <span className="faint truncate" style={{ fontSize: 12 }}>
+        <span className="faint" style={{ fontSize: 12, lineHeight: 1.45 }}>
           {detail}
         </span>
       </div>

@@ -87,6 +87,25 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       return session
     },
   },
+  events: {
+    // Auth.js only stores OAuth tokens the first time an account is linked. When someone
+    // reconnects Google to grant Gmail access, save the new tokens and scope too.
+    async signIn({ account }) {
+      if (account?.provider !== 'google' || !account.access_token) return
+      await prisma.account.updateMany({
+        where: { provider: 'google', providerAccountId: account.providerAccountId },
+        data: {
+          access_token: account.access_token,
+          expires_at: account.expires_at ?? null,
+          scope: account.scope ?? null,
+          token_type: account.token_type ?? null,
+          id_token: account.id_token ?? null,
+          // Google only sends a refresh token on consent; keep the old one otherwise.
+          ...(account.refresh_token ? { refresh_token: account.refresh_token } : {}),
+        },
+      })
+    },
+  },
   pages: {
     signIn: '/login',
     error: '/login',
