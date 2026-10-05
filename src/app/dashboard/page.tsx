@@ -86,17 +86,14 @@ export default function OverviewPage() {
         </div>
       </div>
 
-      <div style={{ overflowX: 'auto', borderRadius: 14 }}>
-        <nav
-          aria-label="Pipeline by stage"
-          style={{ display: 'grid', gridTemplateColumns: 'repeat(7, minmax(110px, 1fr))', background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, overflow: 'hidden' }}
-        >
-          {STATUSES.map((s, i) => (
+      <div>
+        <nav aria-label="Pipeline by stage" className="pipeline-strip">
+          {STATUSES.map((s) => (
             <Link
               key={s}
               href={`/dashboard/applications?status=${s}`}
               className="row-hover"
-              style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8, borderRight: i < 6 ? '1px solid var(--line-2)' : 'none', borderRadius: 0, color: 'inherit' }}
+              style={{ padding: 16, display: 'flex', flexDirection: 'column', gap: 8, borderRadius: 0, color: 'inherit', background: 'var(--surface)' }}
             >
               <span className="muted" style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 12 }}>
                 <StageDot status={s} />

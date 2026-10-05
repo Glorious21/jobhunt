@@ -65,7 +65,7 @@ export default function GoalsPage() {
 
   return (
     <div className="page-enter" style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))', gap: 14 }}>
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: 14 }}>
         <div className="card" style={{ flexDirection: 'row', gap: 18, alignItems: 'center' }}>
           <div className="ring" style={{ width: 104, height: 104, ['--p' as string]: pct }}>
             <div style={{ width: 80, height: 80 }}>

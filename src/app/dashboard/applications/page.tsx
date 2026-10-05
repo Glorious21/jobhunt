@@ -97,8 +97,8 @@ function Applications() {
 
       {view === 'table' ? (
         <div style={{ background: 'var(--surface)', border: '1px solid var(--line)', borderRadius: 14, overflowX: 'auto' }}>
-          <div style={{ minWidth: 820 }} role="table" aria-label="Applications">
-            <div role="row" style={{ display: 'grid', gridTemplateColumns: GRID, gap: 12, padding: '12px 18px', borderBottom: '1px solid var(--line)', fontSize: 12, fontWeight: 600, background: 'var(--surface-2)' }}>
+          <div className="app-table" style={{ minWidth: 820 }} role="table" aria-label="Applications">
+            <div role="row" className="table-head" style={{ display: 'grid', gridTemplateColumns: GRID, gap: 12, padding: '12px 18px', borderBottom: '1px solid var(--line)', fontSize: 12, fontWeight: 600, background: 'var(--surface-2)' }}>
               {COLUMNS.map(([k, label]) => (
                 <button
                   key={k}
