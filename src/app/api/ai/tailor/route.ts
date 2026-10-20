@@ -46,6 +46,7 @@ export async function POST(request: Request) {
 
   const result: TailorResult = {
     mode: 'keywords',
+    ...(apiKey ? { aiUnavailable: true } : {}),
     matchScore: keywords.score,
     matchingSkills: keywords.matching,
     missingSkills: keywords.missing,

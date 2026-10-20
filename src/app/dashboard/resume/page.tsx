@@ -233,7 +233,7 @@ export default function ResumePage() {
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12 }}>
                 <span style={{ fontWeight: 600 }}>Tailored for this role</span>
                 <span className="mono faint" style={{ fontSize: 11 }}>
-                  {r.mode === 'ai' ? 'OpenAI key connected' : 'No OpenAI key'}
+                  {r.mode === 'ai' ? 'OpenAI key connected' : r.aiUnavailable ? 'AI unavailable' : 'No OpenAI key'}
                 </span>
               </div>
               {r.mode === 'ai' ? (
@@ -291,7 +291,9 @@ export default function ResumePage() {
                 </>
               ) : (
                 <span className="muted" style={{ lineHeight: 1.5 }}>
-                  Add OPENAI_API_KEY to .env to draft a summary, cover letter, recruiter message and interview tips from your real experience.
+                  {r.aiUnavailable
+                    ? "The AI service didn't respond, so this is the keyword match only. Try again in a few minutes."
+                    : 'Add OPENAI_API_KEY to .env to draft a summary, cover letter, recruiter message and interview tips from your real experience.'}
                 </span>
               )}
             </div>

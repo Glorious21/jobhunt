@@ -118,6 +118,8 @@ export interface Profile {
 
 export interface TailorResult {
   mode: 'ai' | 'keywords'
+  /** True when a key is configured but the AI call failed (quota, outage), so only keywords came back. */
+  aiUnavailable?: boolean
   matchScore: number
   matchingSkills: string[]
   missingSkills: string[]

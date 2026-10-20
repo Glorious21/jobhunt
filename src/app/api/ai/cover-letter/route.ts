@@ -41,9 +41,11 @@ export async function POST(request: Request) {
   }
 
   return error(
-    cv.length > 50
-      ? 'Add OPENAI_API_KEY to .env, or save a cover letter template in CV & tailoring.'
-      : 'Add your CV in CV & tailoring first, so the letter can draw on your real experience.',
+    cv.length <= 50
+      ? 'Add your CV in CV & tailoring first, so the letter can draw on your real experience.'
+      : apiKey
+        ? "The AI service didn't respond. Try again in a few minutes, or save a cover letter template in CV & tailoring."
+        : 'Add OPENAI_API_KEY to .env, or save a cover letter template in CV & tailoring.',
     422
   )
 }
